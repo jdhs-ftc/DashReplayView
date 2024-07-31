@@ -1,0 +1,29 @@
+plugins {
+    id 'java'
+}
+
+group = 'page.j5155.DashReplay'
+version = '1.0-SNAPSHOT'
+
+repositories {
+    mavenCentral()
+    google()
+    maven { url = 'https://maven.brott.dev/' }
+    maven { url 'https://jitpack.io' }
+
+}
+
+dependencies {
+    testImplementation platform('org.junit:junit-bom:5.10.0')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    implementation "com.google.code.gson:gson:2.8.6"
+    implementation "org.nanohttpd:nanohttpd-websocket:2.3.1"
+    implementation('com.github.jdhs-ftc:ftc-dashboard-record:9a1c601366') {
+        exclude group: 'org.firstinspires.ftc'
+    }
+
+}
+
+test {
+    useJUnitPlatform()
+}
