@@ -12,10 +12,8 @@ import java.util.*;
 
 public class ShowLogOnDashOpMode extends TestOpMode {
     TestDashboardInstance dashboard;
-    ArrayList<Pose2d> targetPoses = new ArrayList<>();
-    ArrayList<Pose2d> estPoses = new ArrayList<>();
-    ArrayList<Long> targetTimestamps = new ArrayList<>();
-    ArrayList<Long> estTimestamps = new ArrayList<>();
+    ArrayList<Pose2dWithTime> targetPoses = new ArrayList<>();
+    ArrayList<Pose2dWithTime> estPoses = new ArrayList<>();
     long replayStartTime = System.nanoTime();
     long recordStartTime;
 
@@ -43,26 +41,18 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         Channel estPosesCh = log.getChannels().get("ESTIMATED_POSE");
         if (estPosesCh != null) {
             for (Object msg : estPosesCh.getMessages()) {
-                Hashtable<String, Number> poseWithTime = (Hashtable<String, Number>) msg;
-                estPoses.add(new Pose2d((Double) poseWithTime.get("x"), // this casting is weird
-                        (Double) poseWithTime.get("y"),
-                        (Double) poseWithTime.get("heading")));
-                estTimestamps.add((Long) poseWithTime.get("timestamp"));
+                estPoses.add(new Pose2dWithTime(msg));
             }
         }
         Channel targetPosesCh = log.getChannels().get("TARGET_POSE");
         if (targetPosesCh != null) {
             for (Object msg : targetPosesCh.getMessages()) {
-                Hashtable<String, Number> poseWithTime = (Hashtable<String, Number>) msg;
-                targetPoses.add(new Pose2d((Double) poseWithTime.get("x"),
-                        (Double) poseWithTime.get("y"),
-                        (Double) poseWithTime.get("heading")));
-                targetTimestamps.add((Long) poseWithTime.get("timestamp"));
+                targetPoses.add(new Pose2dWithTime(msg));
             }
         }
 
-        if (!estTimestamps.isEmpty()) {
-            recordStartTime = estTimestamps.get(0);
+        if (!estPoses.isEmpty()) {
+            recordStartTime = estPoses.get(0).getTimestamp();
         }
     }
 
@@ -92,7 +82,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         // then find which poses to show
         long offset = System.nanoTime() - replayStartTime;
 
-        if (!estTimestamps.isEmpty() && recordStartTime + offset > estTimestamps.get(estTimestamps.size() - 1)) {
+        if (!estPoses.isEmpty() && recordStartTime + offset > estPoses.get(estPoses.size() - 1).getTimestamp()) {
             // we're past the end of the recorded timestamps, so reset
             c.fillText("Replay over, looping...", 30, 50, "Arial", 0);
             dashboard.sendTelemetryPacket(packet);
@@ -102,21 +92,19 @@ public class ShowLogOnDashOpMode extends TestOpMode {
             offset = System.nanoTime() - replayStartTime;
         }
         long timeInReplay = recordStartTime + offset;
-        if (!estTimestamps.isEmpty()) {
-            long estTimestampToShow = estTimestamps.stream().min(Comparator.comparingLong(f -> Math.abs(f - timeInReplay))).orElse(estTimestamps.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
-            Pose2d estPoseToShow = estPoses.get(estTimestamps.indexOf(estTimestampToShow)); // this seems inefficient
+        if (!estPoses.isEmpty()) {
+            Pose2dWithTime estPoseToShow = estPoses.stream().min(Comparator.comparingLong(f -> Math.abs(f.getTimestamp() - timeInReplay))).orElse(estPoses.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
 
             c.setStroke("#3F51B5");
-            drawRobot(c, estPoseToShow);
+            drawRobot(c, estPoseToShow.getPose());
         }
 
-        if (!targetTimestamps.isEmpty()) {
-            long targetTimestampToShow = targetTimestamps.stream().min(Comparator.comparingLong(f -> Math.abs(f - timeInReplay))).orElse(targetTimestamps.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
-            Pose2d targetPoseToShow = targetPoses.get(targetTimestamps.indexOf(targetTimestampToShow)); // this seems inefficient
+        if (!targetPoses.isEmpty()) {
+            Pose2dWithTime targetPoseToShow = targetPoses.stream().min(Comparator.comparingLong(f -> Math.abs(f.getTimestamp() - timeInReplay))).orElse(targetPoses.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
 
 
             c.setStroke("#4CAF50");
-            drawRobot(c, targetPoseToShow);
+            drawRobot(c, targetPoseToShow.getPose());
         }
 
 
@@ -140,14 +128,15 @@ public class ShowLogOnDashOpMode extends TestOpMode {
     }
 
     // also written by rbrott, taken from mecanumdrive class in rr1.0 quickstart
-    private void drawPoseList(Canvas c, ArrayList<Pose2d> poses) {
+    // changed to Pose2dWithTime
+    private void drawPoseList(Canvas c, ArrayList<Pose2dWithTime> poses) {
         double[] xPoints = new double[poses.size()];
         double[] yPoints = new double[poses.size()];
 
         int i = 0;
-        for (Pose2d t : poses) {
-            xPoints[i] = t.position.x;
-            yPoints[i] = t.position.y;
+        for (Pose2dWithTime t : poses) {
+            xPoints[i] = t.getX();
+            yPoints[i] = t.getY();
 
             i++;
         }
