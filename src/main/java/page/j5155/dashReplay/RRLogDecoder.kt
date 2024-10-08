@@ -1,9 +1,9 @@
-package page.j5155.DashReplay
+package page.j5155.dashReplay
 
-import page.j5155.DashReplay.RRLogDecoder.EnumSchema
-import page.j5155.DashReplay.RRLogDecoder.MessageSchema
-import page.j5155.DashReplay.RRLogDecoder.PrimitiveSchema
-import page.j5155.DashReplay.RRLogDecoder.StructSchema
+import page.j5155.dashReplay.RRLogDecoder.EnumSchema
+import page.j5155.dashReplay.RRLogDecoder.MessageSchema
+import page.j5155.dashReplay.RRLogDecoder.PrimitiveSchema
+import page.j5155.dashReplay.RRLogDecoder.StructSchema
 import java.io.EOFException
 import java.io.File
 import java.io.FileInputStream
@@ -62,8 +62,7 @@ class RRLogDecoder {
         if (schemaType == 0) {
             val nfields = ByteBuffer.wrap(read(4)).getInt()
             val fields: MutableMap<String, MessageSchema> = LinkedHashMap<String, MessageSchema>()
-            // TODO
-            for (i in 0 until nfields) {
+            repeat(nfields) {
                 val name = readString()
                 fields.put(name, readSchema())
             }
@@ -83,7 +82,7 @@ class RRLogDecoder {
         } else if (schemaType == 6) {
             val nconstants = ByteBuffer.wrap(read(4)).getInt()
             val constants: MutableList<String> = ArrayList<String>()
-            for (i in 0 until nconstants) {
+            repeat (nconstants) {
                 constants.add(readString())
             }
             return EnumSchema(constants)
@@ -100,16 +99,16 @@ class RRLogDecoder {
             }
             return msg
         } else if (schema is PrimitiveSchema) {
-            if (schema === PrimitiveSchema.INT) {
-                return ByteBuffer.wrap(read(4)).getInt()
+            return if (schema === PrimitiveSchema.INT) {
+                ByteBuffer.wrap(read(4)).getInt()
             } else if (schema === PrimitiveSchema.LONG) {
-                return ByteBuffer.wrap(read(8)).getLong()
+                ByteBuffer.wrap(read(8)).getLong()
             } else if (schema === PrimitiveSchema.DOUBLE) {
-                return ByteBuffer.wrap(read(8)).getDouble()
+                ByteBuffer.wrap(read(8)).getDouble()
             } else if (schema === PrimitiveSchema.STRING) {
-                return readString()
+                readString()
             } else if (schema === PrimitiveSchema.BOOLEAN) {
-                return read(1)[0].toInt() == 1 // todo: this is not gonna work at all
+                read(1)[0].toInt() == 1 // todo: this is not gonna work at all
             } else {
                 throw RuntimeException("Unknown primitive schema: $schema")
             }
@@ -121,20 +120,18 @@ class RRLogDecoder {
         }
     }
 
-    fun readFile(f: File): List<Map<String, *>> {
+    data class LogFile(val channels: LinkedHashMap<String, Channel>)
+    data class Channel(val schema: MessageSchema, val messages: ArrayList<Any> = ArrayList())
+
+    fun readFile(f: File): LogFile {
         this.f = FileInputStream(f)
 
         val magic = String(read(2), StandardCharsets.UTF_8)
-        assert(magic == "RR") {
-            "This is not a Roadrunner 1.0 log file" // error added by me j5155
-        }
+        assert(magic == "RR") { "This is not a Road Runner 1.0 log file" }
         val version = ByteBuffer.wrap(read(2)).getShort()
         assert(version.toInt() == 0) { "File version newer then expected (expected version 0 got version $version)" }
 
-        val channels = ArrayList<String>()
-        val schemas: MutableMap<String, MessageSchema> = LinkedHashMap<String, MessageSchema>()
-        val messages: MutableMap<String, ArrayList<Any>> =
-            LinkedHashMap<String, ArrayList<Any>>() // not sure whether these types are right
+        val channels = LinkedHashMap<String,Channel>()
 
         while (true) {
             try {
@@ -142,14 +139,13 @@ class RRLogDecoder {
                 if (entryType == 0) {
                     // channel definition
                     val ch = readString()
-                    schemas.put(ch, readSchema())
-                    channels.add(ch)
+                    val schema = readSchema()
+                    channels.put(ch,Channel(schema))
                 } else if (entryType == 1) {
                     // message
                     val chIndex = ByteBuffer.wrap(read(4)).getInt()
-                    val ch = channels[chIndex]
-                    messages.putIfAbsent(ch,ArrayList<Any>())
-                    messages[ch]!!.add(readMsg(schemas[ch]!!)) // null type assertions here kinda strange
+                    val ch: Channel = channels.values.elementAt(chIndex)
+                    ch.messages.add(readMsg(ch.schema)) // pass by reference?? I hope???
                 } else {
                     throw RuntimeException("Unknown entry type: $entryType")
                 }
@@ -157,26 +153,21 @@ class RRLogDecoder {
                 break
             }
         }
-        return listOf<MutableMap<String, *>>(schemas, messages)
+        return LogFile(channels)
     }
 
-    companion object {
-        @JvmStatic
-        fun main(args: Array<String>) {
+}
+
+        fun main() {
             val d = RRLogDecoder()
             val file = File("/home/james/Documents/robotlogs/2024_02_16__19_52_54_834__FarParkLeftPixel.log")
-            val fileContents = d.readFile(file)
-            val schemas = fileContents[0] as MutableMap<String, MessageSchema>
-            val messages = fileContents[1] as MutableMap<String, ArrayList<Any>>
+            val logFile = d.readFile(file)
 
-            for (ch in schemas.keys) {
-                val schema = schemas[ch]
-                println("Channel: " + ch + " (" + messages[ch]!!.size + "messages)\n " + schema)
-                for (o in messages[ch]!!) {
+            for (ch in logFile.channels) { // for each channel
+                println("Channel: " + ch.key + " (" + ch.value + "messages)\n " + ch.value.schema)
+                for (o in ch.value.messages) {
                     print(o.javaClass)
                     println(o)
                 }
             }
         }
-    }
-}

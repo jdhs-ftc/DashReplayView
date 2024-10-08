@@ -1,4 +1,4 @@
-package page.j5155.DashReplay;
+package page.j5155.dashReplay;
 
 import com.acmerobotics.dashboard.DashboardCore;
 import com.acmerobotics.dashboard.RobotStatus;
@@ -12,8 +12,8 @@ import com.acmerobotics.dashboard.message.redux.ReceiveRobotStatus;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import fi.iki.elonen.NanoHTTPD;
 import fi.iki.elonen.NanoWSD;
-import page.j5155.DashReplay.testopmode.TestOpModeManager;
-import page.j5155.DashReplay.testopmode.TestOpMode;
+import page.j5155.dashReplay.testopmode.TestOpModeManager;
+import page.j5155.dashReplay.testopmode.TestOpMode;
 
 import java.io.IOException;
 import java.util.stream.Collectors;

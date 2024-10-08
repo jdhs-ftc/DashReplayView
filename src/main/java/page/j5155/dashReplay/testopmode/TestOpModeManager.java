@@ -1,7 +1,7 @@
-package page.j5155.DashReplay.testopmode;
+package page.j5155.dashReplay.testopmode;
 
 import com.acmerobotics.dashboard.SendFun;
-import page.j5155.DashReplay.ShowLogOnDashOpMode;
+import page.j5155.dashReplay.ShowLogOnDashOpMode;
 
 import java.util.Arrays;
 import java.util.List;

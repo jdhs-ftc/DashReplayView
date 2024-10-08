@@ -1,4 +1,4 @@
-package page.j5155.DashReplay;
+package page.j5155.dashReplay;
 
 public class Main {
     public static void main(String[] args) throws InterruptedException {

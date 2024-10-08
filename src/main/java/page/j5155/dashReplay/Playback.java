@@ -1,4 +1,4 @@
-package page.j5155.DashReplay;
+package page.j5155.dashReplay;
 
 import com.acmerobotics.dashboard.DashboardCore;
 import com.acmerobotics.dashboard.RobotStatus;
