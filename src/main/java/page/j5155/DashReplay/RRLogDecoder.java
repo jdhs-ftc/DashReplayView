@@ -11,7 +11,7 @@ public class RRLogDecoder {
     int numberOfBytesRead = 0;
 
     interface MessageSchema {}
-    class StructSchema implements MessageSchema {
+    static class StructSchema implements MessageSchema {
         Map<String,MessageSchema> fields;
         StructSchema(Map<String,MessageSchema> fields) {
             this.fields = fields;
@@ -25,7 +25,7 @@ public class RRLogDecoder {
         BOOLEAN
     }
 
-    class EnumSchema implements MessageSchema {
+    static class EnumSchema implements MessageSchema {
         List<String> constants;
 
         public EnumSchema(List<String> constants) {
@@ -140,9 +140,7 @@ public class RRLogDecoder {
                     // message
                     int ch_index = ByteBuffer.wrap(read(4)).getInt();
                     String ch = channels.get(ch_index);
-                    if (messages.get(ch) == null) {
-                        messages.put(ch, new ArrayList<>());
-                    }
+                    messages.computeIfAbsent(ch, k -> new ArrayList<>());
                     messages.get(ch).add(read_msg(schemas.get(ch)));
                 } else {
                     throw new RuntimeException("Unknown entry type: " + entry_type);

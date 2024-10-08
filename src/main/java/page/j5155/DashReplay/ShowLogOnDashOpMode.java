@@ -29,7 +29,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         dashboard = TestDashboardInstance.getInstance();
 
         RRLogDecoder d = new RRLogDecoder();
-        File file = new File(System.getProperty("user.home") + "/Downloads/2024_09_08__12_54_05_427__ManualFeedforwardTuner (1).log");
+        File file = new File(System.getProperty("user.home") + "/Downloads/2024_10_05__21_57_33_666__LocalizationTest.log");
         List<Map<String,?>> fileContents = null;
         try {
             fileContents = d.read_file(file);
@@ -99,7 +99,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         // then find which poses to show
         long offset = System.nanoTime() - replayStartTime;
 
-        if (recordStartTime + offset > estTimestamps.get(estTimestamps.size() - 1)) {
+        if (!estTimestamps.isEmpty() && recordStartTime + offset > estTimestamps.get(estTimestamps.size() - 1)) {
             // we're past the end of the recorded timestamps, so reset
             c.fillText("Replay over, looping...",30,50,"Arial",0);
             dashboard.sendTelemetryPacket(packet);
@@ -109,13 +109,13 @@ public class ShowLogOnDashOpMode extends TestOpMode {
             offset = System.nanoTime() - replayStartTime;
         }
         long timeInReplay = recordStartTime + offset;
+        if (!estTimestamps.isEmpty()) {
+            long estTimestampToShow = estTimestamps.stream().min(Comparator.comparingLong(f -> Math.abs(f - timeInReplay))).orElse(estTimestamps.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
+            Pose2d estPoseToShow = estPoses.get(estTimestamps.indexOf(estTimestampToShow)); // this seems inefficient
 
-
-        long estTimestampToShow = estTimestamps.stream().min(Comparator.comparingLong(f -> Math.abs(f - timeInReplay))).orElse(estTimestamps.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
-        Pose2d estPoseToShow = estPoses.get(estTimestamps.indexOf(estTimestampToShow)); // this seems inefficient
-
-        c.setStroke("#3F51B5");
-        drawRobot(c,estPoseToShow);
+            c.setStroke("#3F51B5");
+            drawRobot(c, estPoseToShow);
+        }
 
         if (!targetTimestamps.isEmpty()) {
             long targetTimestampToShow = targetTimestamps.stream().min(Comparator.comparingLong(f -> Math.abs(f - timeInReplay))).orElse(targetTimestamps.get(0)); // https://stackoverflow.com/questions/62559012/find-closest-object-in-java-collection-for-a-given-value-using-java8-stream
