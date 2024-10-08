@@ -1,7 +1,6 @@
 package page.j5155.DashReplay;
 
 import com.acmerobotics.dashboard.canvas.Canvas;
-import com.acmerobotics.dashboard.config.ValueProvider;
 import com.acmerobotics.dashboard.telemetry.TelemetryPacket;
 import com.acmerobotics.roadrunner.Pose2d;
 import com.acmerobotics.roadrunner.Vector2d;
@@ -31,11 +30,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         RRLogDecoder d = new RRLogDecoder();
         File file = new File(System.getProperty("user.home") + "/Downloads/2024_10_05__21_57_33_666__LocalizationTest.log");
         List<Map<String,?>> fileContents = null;
-        try {
-            fileContents = d.read_file(file);
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
+        fileContents = d.readFile(file);
         Map<String, RRLogDecoder.MessageSchema> schemas = (Map<String, RRLogDecoder.MessageSchema>) fileContents.get(0);
         Map<String, ArrayList<Object>> messages = (Map<String, ArrayList<Object>>) fileContents.get(1);
 
