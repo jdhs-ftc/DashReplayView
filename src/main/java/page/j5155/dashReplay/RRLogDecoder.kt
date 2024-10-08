@@ -7,7 +7,6 @@ import page.j5155.dashReplay.RRLogDecoder.StructSchema
 import java.io.EOFException
 import java.io.File
 import java.io.FileInputStream
-import java.io.IOException
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -17,7 +16,7 @@ import java.util.Hashtable
 import java.util.LinkedHashMap
 
 class RRLogDecoder {
-    var f: FileInputStream? = null
+    lateinit var f: FileInputStream
     var numberOfBytesRead: Int = 0
 
     interface MessageSchema
@@ -33,14 +32,15 @@ class RRLogDecoder {
 
     class EnumSchema(var constants: MutableList<String>) : MessageSchema
 
+    data class LogFile(val channels: LinkedHashMap<String, Channel>)
+    data class Channel(val schema: MessageSchema, val messages: ArrayList<Any> = ArrayList())
 
-    @Throws(IOException::class)
     fun read(n: Int): ByteArray {
         numberOfBytesRead += n
         assert(n > 0)
         // assume this reads exactly n bytes or we reach EOF
         val buf = ByteArray(n)
-        val readReturn = f!!.read(
+        val readReturn = f.read(
             buf,
             0,
             n
@@ -61,7 +61,7 @@ class RRLogDecoder {
         val schemaType = ByteBuffer.wrap(read(4)).getInt()
         if (schemaType == 0) {
             val nfields = ByteBuffer.wrap(read(4)).getInt()
-            val fields: MutableMap<String, MessageSchema> = LinkedHashMap<String, MessageSchema>()
+            val fields = LinkedHashMap<String, MessageSchema>()
             repeat(nfields) {
                 val name = readString()
                 fields.put(name, readSchema())
@@ -99,16 +99,16 @@ class RRLogDecoder {
             }
             return msg
         } else if (schema is PrimitiveSchema) {
-            return if (schema === PrimitiveSchema.INT) {
+            return if (schema == PrimitiveSchema.INT) {
                 ByteBuffer.wrap(read(4)).getInt()
-            } else if (schema === PrimitiveSchema.LONG) {
+            } else if (schema == PrimitiveSchema.LONG) {
                 ByteBuffer.wrap(read(8)).getLong()
-            } else if (schema === PrimitiveSchema.DOUBLE) {
+            } else if (schema == PrimitiveSchema.DOUBLE) {
                 ByteBuffer.wrap(read(8)).getDouble()
-            } else if (schema === PrimitiveSchema.STRING) {
+            } else if (schema == PrimitiveSchema.STRING) {
                 readString()
-            } else if (schema === PrimitiveSchema.BOOLEAN) {
-                read(1)[0].toInt() == 1 // todo: this is not gonna work at all
+            } else if (schema == PrimitiveSchema.BOOLEAN) {
+                read(1)[0].toInt() == 1
             } else {
                 throw RuntimeException("Unknown primitive schema: $schema")
             }
@@ -120,8 +120,6 @@ class RRLogDecoder {
         }
     }
 
-    data class LogFile(val channels: LinkedHashMap<String, Channel>)
-    data class Channel(val schema: MessageSchema, val messages: ArrayList<Any> = ArrayList())
 
     fun readFile(f: File): LogFile {
         this.f = FileInputStream(f)
