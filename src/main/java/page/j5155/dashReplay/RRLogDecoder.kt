@@ -20,7 +20,11 @@ class RRLogDecoder {
     var numberOfBytesRead: Int = 0
 
     interface MessageSchema
-    class StructSchema(var fields: Map<String, MessageSchema>) : MessageSchema
+    class StructSchema(var fields: Map<String, MessageSchema>) : MessageSchema {
+        override fun toString(): String {
+            return "StructSchema(fields=$fields)"
+        }
+    }
 
     enum class PrimitiveSchema : MessageSchema {
         INT,
@@ -30,7 +34,11 @@ class RRLogDecoder {
         BOOLEAN
     }
 
-    class EnumSchema(var constants: MutableList<String>) : MessageSchema
+    class EnumSchema(var constants: MutableList<String>) : MessageSchema {
+        override fun toString(): String {
+            return "EnumSchema(constants=$constants)"
+        }
+    }
 
     data class LogFile(val channels: LinkedHashMap<String, Channel>)
     data class Channel(val schema: MessageSchema, val messages: ArrayList<Any> = ArrayList())

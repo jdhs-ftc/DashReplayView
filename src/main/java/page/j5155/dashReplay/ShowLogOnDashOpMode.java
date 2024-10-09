@@ -31,7 +31,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
 
         for (String chName : log.getChannels().keySet()) {
             Channel ch = log.getChannels().get(chName);
-            System.out.println("Channel: " + chName + " (" + ch.getMessages().size() + "messages)\n " + ch.getSchema());
+            System.out.println("Channel: " + chName + " (" + ch.getMessages().size() + " messages)\n " + ch.getSchema());
             if (ch.getMessages().size() < 3) {
                 for (Object msg : ch.getMessages()) {
                     System.out.println(msg);
@@ -62,7 +62,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         TelemetryPacket packet = new TelemetryPacket(false);
         Canvas c = packet.fieldOverlay();
         c.setAlpha(0.4)
-                .drawImage("https://raw.githubusercontent.com/acmerobotics/ftc-dashboard/master/FtcDashboard/dash/public/centerstage.webp", 0, 0, 144, 144)
+                .drawImage("https://raw.githubusercontent.com/acmerobotics/ftc-dashboard/refs/heads/master/client/public/into-the-deep.png", 0, 0, 144, 144)
                 .setAlpha(1.0)
                 .drawGrid(0, 0, 144, 144, 7, 7);
 
