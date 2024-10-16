@@ -7,6 +7,8 @@ import page.j5155.dashReplay.RRLogDecoder.StructSchema
 import java.io.EOFException
 import java.io.File
 import java.io.FileInputStream
+import java.io.ByteArrayInputStream
+import java.io.InputStream
 import java.lang.RuntimeException
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -16,7 +18,7 @@ import java.util.Hashtable
 import java.util.LinkedHashMap
 
 class RRLogDecoder {
-    lateinit var f: FileInputStream
+    lateinit var f: InputStream
     var numberOfBytesRead: Int = 0
 
     interface MessageSchema
@@ -41,7 +43,8 @@ class RRLogDecoder {
     }
 
     data class LogFile(val channels: LinkedHashMap<String, Channel>)
-    data class Channel(val schema: MessageSchema, val messages: ArrayList<Any> = ArrayList())
+    data class Channel(val schema: MessageSchema, var messages: ArrayList<Any> = ArrayList()) // messages a var
+    // so that other stuff can shorten it
 
     fun read(n: Int): ByteArray {
         numberOfBytesRead += n
@@ -128,9 +131,14 @@ class RRLogDecoder {
         }
     }
 
-
     fun readFile(f: File): LogFile {
-        this.f = FileInputStream(f)
+        return readInputStream(FileInputStream(f))
+    }
+    fun readByteArray(f: ByteArray): LogFile {
+        return readInputStream(ByteArrayInputStream(f))
+    }
+    fun readInputStream(f: InputStream): LogFile {
+        this.f = f
 
         val magic = String(read(2), StandardCharsets.UTF_8)
         assert(magic == "RR") { "This is not a Road Runner 1.0 log file" }
@@ -151,9 +159,10 @@ class RRLogDecoder {
                     // message
                     val chIndex = ByteBuffer.wrap(read(4)).getInt()
                     val ch: Channel = channels.values.elementAt(chIndex)
-                    ch.messages.add(readMsg(ch.schema)) // pass by reference?? I hope???
+                    val msg = readMsg(ch.schema)
+                    ch.messages.add(msg) // pass by reference?? I hope???
                 } else {
-                    throw RuntimeException("Unknown entry type: $entryType")
+                    throw RuntimeException("Unknown entry type: $entryType at $numberOfBytesRead - 4 bytes")
                 }
             } catch (_: EOFException) {
                 break
