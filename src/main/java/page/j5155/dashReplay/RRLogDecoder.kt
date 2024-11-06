@@ -1,5 +1,7 @@
 package page.j5155.dashReplay
 
+import kotlinx.serialization.Contextual
+import kotlinx.serialization.Serializable
 import page.j5155.dashReplay.RRLogDecoder.EnumSchema
 import page.j5155.dashReplay.RRLogDecoder.MessageSchema
 import page.j5155.dashReplay.RRLogDecoder.PrimitiveSchema
@@ -41,9 +43,11 @@ class RRLogDecoder {
             return "EnumSchema(constants=$constants)"
         }
     }
-
+    @Serializable
     data class LogFile(val channels: LinkedHashMap<String, Channel>)
-    data class Channel(val schema: MessageSchema, var messages: ArrayList<Any> = ArrayList()) // messages a var
+
+    @Serializable
+    data class Channel(val schema: MessageSchema, @Contextual var messages: ArrayList<Any> = ArrayList()) // messages a var
     // so that other stuff can shorten it
 
     fun read(n: Int): ByteArray {
