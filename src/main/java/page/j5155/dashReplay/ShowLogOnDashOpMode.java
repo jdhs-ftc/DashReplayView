@@ -26,7 +26,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         dashboard = TestDashboardInstance.getInstance();
 
         RRLogDecoder d = new RRLogDecoder();
-        File file = new File(System.getProperty("user.home") + "/Downloads/2024_10_05__21_57_33_666__LocalizationTest.log");
+        File file = new File(System.getProperty("user.home") + "/Downloads/2025_03_15__03_43_35_505__SplineTest.log.json");
         LogFile log = d.readFile(file);
 
         for (String chName : log.getChannels().keySet()) {
@@ -41,25 +41,29 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         Channel estPosesCh = log.getChannels().get("ESTIMATED_POSE");
         if (estPosesCh != null) {
             for (Object msg : estPosesCh.getMessages()) {
-                estPoses.add(new Pose2dWithTime(msg));
+                estPoses.add(new Pose2dWithTime((Map<?, ?>) msg));
             }
         }
         Channel targetPosesCh = log.getChannels().get("TARGET_POSE");
         if (targetPosesCh != null) {
             for (Object msg : targetPosesCh.getMessages()) {
-                targetPoses.add(new Pose2dWithTime(msg));
+                targetPoses.add(new Pose2dWithTime((Map<?, ?>) msg));
             }
         }
 
         if (!estPoses.isEmpty()) {
             recordStartTime = estPoses.get(0).getTimestamp();
         }
+        System.out.println("lastPose: " + estPoses.get(estPoses.size() - 1));
+        System.out.println("lastTarget: " + targetPoses.get(targetPoses.size() - 1));
+        System.out.println("lastPinpointStatus: " + log.getChannels().get("PINPOINT_STATUS").getMessages().get(log.getChannels().get("PINPOINT_STATUS").getMessages().size() - 1));
+
     }
 
     @Override
     protected void loop() throws InterruptedException {
         //draw the field
-        TelemetryPacket packet = new TelemetryPacket(false);
+        TelemetryPacket packet = new TelemetryPacket();
         Canvas c = packet.fieldOverlay();
         c.setAlpha(0.4)
                 .drawImage("https://raw.githubusercontent.com/acmerobotics/ftc-dashboard/refs/heads/master/client/public/into-the-deep.png", 0, 0, 144, 144)

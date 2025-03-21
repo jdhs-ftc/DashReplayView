@@ -3,7 +3,7 @@ package page.j5155.dashReplay
 import com.acmerobotics.roadrunner.Pose2d
 import kotlinx.serialization.Serializable
 
-@Serializable
+//@Serializable
 data class Pose2dWithTime(var x: Double, var y: Double, var heading: Double, var timestamp: Long) {
     constructor(msg: Map<*,*>) :
         this(x= msg["x"] as Double,

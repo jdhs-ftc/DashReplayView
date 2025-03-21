@@ -24,7 +24,7 @@ class RRLogDecoder {
     var numberOfBytesRead: Int = 0
 
     interface MessageSchema
-    class StructSchema(var fields: Map<String, MessageSchema>) : MessageSchema {
+    class StructSchema(val fields: Map<String, MessageSchema>) : MessageSchema {
         override fun toString(): String {
             return "StructSchema(fields=$fields)"
         }
@@ -43,10 +43,10 @@ class RRLogDecoder {
             return "EnumSchema(constants=$constants)"
         }
     }
-    @Serializable
+    //@Serializable
     data class LogFile(val channels: LinkedHashMap<String, Channel>)
 
-    @Serializable
+    //@Serializable
     data class Channel(val schema: MessageSchema, @Contextual var messages: ArrayList<Any> = ArrayList()) // messages a var
     // so that other stuff can shorten it
 
@@ -179,7 +179,7 @@ class RRLogDecoder {
 
         fun main() {
             val d = RRLogDecoder()
-            val file = File("/home/james/Documents/robotlogs/2024_02_16__19_52_54_834__FarParkLeftPixel.log")
+            val file = File(System.getProperty("user.home") + "/Downloads/2025_03_15__03_43_35_505__SplineTest.log.json")
             val logFile = d.readFile(file)
 
             for (ch in logFile.channels) { // for each channel

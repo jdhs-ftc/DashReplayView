@@ -32,7 +32,7 @@ public class TestDashboardInstance {
 
     private TelemetryPacket currentPacket;
 
-    DashboardCore core = new DashboardCore(false);
+    DashboardCore core = new DashboardCore();
 
     private NanoWSD server = new NanoWSD(8000) {
         @Override
@@ -140,8 +140,6 @@ public class TestDashboardInstance {
         System.out.println("Starting Dashboard instance");
 
         core.enabled = true;
-        core.replayEnabled = false; // added because i did this in dash replay for some reason
-        core.replayFilePath = System.getProperty("user.home") + "/Documents/replayer.txt";
 
         core.addConfigVariable("Test", "LATERAL_MULTIPLIER", new ValueProvider<Double>() {
             private double x;
