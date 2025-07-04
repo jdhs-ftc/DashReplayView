@@ -10,7 +10,7 @@
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$" />
+            <option value="$USER_HOME$/StudioProjects/DashReplay" />
           </set>
         </option>
       </GradleProjectSettings>

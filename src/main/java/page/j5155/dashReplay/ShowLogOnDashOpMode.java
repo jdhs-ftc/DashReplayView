@@ -26,7 +26,7 @@ public class ShowLogOnDashOpMode extends TestOpMode {
         dashboard = TestDashboardInstance.getInstance();
 
         RRLogDecoder d = new RRLogDecoder();
-        File file = new File(System.getProperty("user.home") + "/Downloads/2025_03_15__03_43_35_505__SplineTest.log.json");
+        File file = new File(System.getProperty("user.home") + "/Documents/robotlogs/2025-state/2025_02_15__16_04_22_907__TeleopActions.log");
         LogFile log = d.readFile(file);
 
         for (String chName : log.getChannels().keySet()) {
@@ -101,6 +101,10 @@ public class ShowLogOnDashOpMode extends TestOpMode {
 
             c.setStroke("#3F51B5");
             drawRobot(c, estPoseToShow.getPose());
+            packet.put("estPose x", estPoseToShow.getX());
+            packet.put("estPose y", estPoseToShow.getY());
+            packet.put("estPose heading", estPoseToShow.getHeading());
+
         }
 
         if (!targetPoses.isEmpty()) {
@@ -109,6 +113,10 @@ public class ShowLogOnDashOpMode extends TestOpMode {
 
             c.setStroke("#4CAF50");
             drawRobot(c, targetPoseToShow.getPose());
+
+            packet.put("targetPose x", targetPoseToShow.getX());
+            packet.put("targetPose y", targetPoseToShow.getY());
+            packet.put("targetPose heading", targetPoseToShow.getHeading());
         }
 
 
